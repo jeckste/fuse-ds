@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features>
+	<feature name="farm-ds-app">
+		<bundle>mvn:com.redhat.training/com.redhat.training.api/${project.version}
+		</bundle>
+
+		<bundle>mvn:com.redhat.training/com.redhat.training.simpleds/${project.version}
+		</bundle>
+	</feature>
+
+	<feature name="dynamic-topic-app">
+		<feature>camel-quartz2</feature>
+		<bundle>mvn:org.apache.camel/camel-core-osgi/2.12.0.redhat-610379
+		</bundle>
+		<bundle>mvn:com.redhat.training/com.redhat.training.api/${project.version}
+		</bundle>
+
+		<bundle>mvn:com.redhat.training/com.redhat.training.dtopic/${project.version}
+		</bundle>
+	</feature>
+
+</features>
