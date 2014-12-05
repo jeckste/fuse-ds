@@ -1,10 +1,13 @@
 package com.redhat.training.dtopic.component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.RouteDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +32,8 @@ public class CommandListenerComponent implements RouteComponent {
 	
 	private Map<String, ?> properties;
 	
+	RouteBuilder routeBuilder;
+	
 	@Activate
     public void activate(final Map<String, ?> properties) {
         LOG.info("Activating the " + COMPONENT_NAME);
@@ -43,7 +48,7 @@ public class CommandListenerComponent implements RouteComponent {
 
 	@Override
 	public RouteBuilder getRouteBuilder() {
-		return new RouteBuilder() {
+		routeBuilder =  new RouteBuilder() {
 
 			@Override
 			public void configure() throws Exception {
@@ -58,6 +63,7 @@ public class CommandListenerComponent implements RouteComponent {
 						});
 			}
 		};
+		return routeBuilder;
 	}
 
 	public RouteComponentFactoryManager getFactoryManager() {
@@ -67,6 +73,15 @@ public class CommandListenerComponent implements RouteComponent {
 	@Reference
 	public void setFactoryManager(RouteComponentFactoryManager factoryManager) {
 		this.factoryManager = factoryManager;
+	}
+
+    @Override
+	public List<String> getRouteIds() {
+		List<String> routeIds = new ArrayList<>();
+		for(RouteDefinition routeDefinition : routeBuilder.getRouteCollection().getRoutes()) {
+			routeIds.add( routeDefinition.getId() );
+		}
+		return routeIds;
 	}
 
 }

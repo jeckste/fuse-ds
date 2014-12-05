@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<features>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
 	<feature name="farm-ds-app">
 		<bundle>mvn:com.redhat.training/com.redhat.training.api/${project.version}
 		</bundle>

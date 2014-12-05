@@ -1,5 +1,6 @@
 package com.redhat.training.dtopic.camel.context;
 
+import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -23,77 +24,91 @@ import com.redhat.training.api.RouteComponent;
 public class CamelContextComponent {
 
 	public static final String COMPONENT_NAME = "CamelContextComponent";
-	
-	private static final Logger LOG = LoggerFactory.getLogger(CamelContextComponent.class);
-	
+
+	private static final Logger LOG = LoggerFactory
+			.getLogger(CamelContextComponent.class);
+
 	CamelContext context;
-    private ReadWriteLock contextLock = new ReentrantReadWriteLock();
-    
-    JndiContext jndiContext;
-    private ReadWriteLock jndiContextLock = new ReentrantReadWriteLock();
-    
-    public CamelContextComponent() {
-        try {
-            jndiContext = new JndiContext();
-        }
-        catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        JndiRegistry jndiRegistry = new JndiRegistry(jndiContext);
-        BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-        context = new OsgiDefaultCamelContext(bundleContext, jndiRegistry);
-    }
-    
-    @Activate
-    public void activate() throws Exception {
+	private ReadWriteLock contextLock = new ReentrantReadWriteLock();
 
-//        try {
-//            contextLock.writeLock().lock();
-//        }
-//        finally {
-//            contextLock.writeLock().unlock();
-//        }
+	JndiContext jndiContext;
+	private ReadWriteLock jndiContextLock = new ReentrantReadWriteLock();
 
-        try {
-            contextLock.writeLock().lock();
-            context.start();
-        }
-        finally {
-            contextLock.writeLock().unlock();
-        }
-    }
+	public CamelContextComponent() {
+		try {
+			jndiContext = new JndiContext();
+		} catch (Exception e) {
+			LOG.error(e.getMessage(), e);
+		}
+		JndiRegistry jndiRegistry = new JndiRegistry(jndiContext);
+		BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass())
+				.getBundleContext();
+		context = new OsgiDefaultCamelContext(bundleContext, jndiRegistry);
+	}
 
-    @Deactivate
-    public void deactivate() throws Exception {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Deactivating component");
-        }
-        try {
-            contextLock.writeLock().lock();
-            context.stop();
-        }
-        finally {
-            contextLock.writeLock().unlock();
-        }
-    }
-    
-    @Reference(multiple = true, unbind = "unbindRouteComponent", dynamic = true, optional = true)
-    public void setCommandRouteBuilderComponent(RouteComponent routeComponentFactory) {
-    	LOG.info("adding route");
-        try {
-            contextLock.writeLock().lock();
-            context.addRoutes(routeComponentFactory.getRouteBuilder());
-        }
-        catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        finally {
-            contextLock.writeLock().unlock();
-        }
-    }
+	@Activate
+	public void activate() throws Exception {
 
-    @SuppressWarnings("unused")
-    private void unbindRouteComponent(RouteComponent routeComponent) {
-      //TODO:Code to unbind route
-    }
+		// try {
+		// contextLock.writeLock().lock();
+		// }
+		// finally {
+		// contextLock.writeLock().unlock();
+		// }
+
+		try {
+			contextLock.writeLock().lock();
+			context.start();
+		} finally {
+			contextLock.writeLock().unlock();
+		}
+	}
+
+	@Deactivate
+	public void deactivate() throws Exception {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Deactivating component");
+		}
+		try {
+			contextLock.writeLock().lock();
+			context.stop();
+		} finally {
+			contextLock.writeLock().unlock();
+		}
+	}
+
+	@Reference(multiple = true, unbind = "unbindRouteComponent", dynamic = true, optional = true)
+	public void setCommandRouteBuilderComponent(
+			RouteComponent routeComponentFactory) {
+		LOG.info("adding route");
+		try {
+			contextLock.writeLock().lock();
+			context.addRoutes(routeComponentFactory.getRouteBuilder());
+		} catch (Exception e) {
+			LOG.error(e.getMessage(), e);
+		} finally {
+			contextLock.writeLock().unlock();
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void unbindRouteComponent(RouteComponent routeComponent) {
+		LOG.info("Attempting unbind of: "
+				+ routeComponent.getClass().getSimpleName());
+		List<String> routeIds = routeComponent.getRouteIds();
+		if (routeIds != null) {
+			for (String routeId : routeIds) {
+				LOG.info("Unbinding routebuidler component route: " + routeId);
+				try {
+					contextLock.writeLock().lock();
+					context.removeRoute(routeId);
+				} catch (Exception e) {
+					LOG.error(e.getMessage(), e);
+				} finally {
+					contextLock.writeLock().unlock();
+				}
+
+			}
+		}
+	}
 }
